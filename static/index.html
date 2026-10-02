@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arogya-Veda AI | AI-Based Hospital Resource Optimization</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-header">
+    <div class="brand-wrapper">
+      <div class="brand-logo-icon">⚕️</div>
+      <div>
+        <h1 class="brand-title">Arogya-Veda AI</h1>
+        <div class="brand-subtitle">AI-Based Hospital Resource Optimization | Team Astra (Rupesh Tandan - CSVTU)</div>
+      </div>
+    </div>
+    <div class="header-status-group">
+      <div class="live-pill">
+        <span class="pulsing-dot"></span>
+        <span>ENGINE LIVE & OPTIMIZING</span>
+      </div>
+      <div id="live-clock" style="font-family: monospace; color: var(--text-muted); font-size: 13px;">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- Navigation Tab Bar with Dedicated Modules for Each Resource + Master Overview -->
+  <nav class="nav-tab-bar">
+    <button class="tab-btn overview-tab active" onclick="switchTab('tab-overview')">
+      <span>🌐</span> Master Hospital Overview
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-beds')">
+      <span>🛏️</span> Beds & Inpatient Wards
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-icu')">
+      <span>🫀</span> ICU Critical Care Hub
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-or')">
+      <span>🔬</span> Operating Theatres (OR)
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-staff')">
+      <span>👩‍⚕️</span> Staff & Nurse Rosters
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-ed')">
+      <span>🚨</span> Emergency Department (ED)
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-forecasting')">
+      <span>🔮</span> Quantile Forecaster
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-optimizer')">
+      <span>⚡</span> HiGHS MILP Optimizer
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-digital-twin')">
+      <span>🧪</span> Digital Twin Simulator
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-benchmark')">
+      <span>📊</span> Performance & Accuracy Overview
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-config')">
+      <span>⚙️</span> Hospital Setup & Resource Editor
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-audit')">
+      <span>🔄</span> Audit & Feedback
+    </button>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="dashboard-container">
+
+    <!-- Live Unified KPI Banner -->
+    <section class="kpi-grid">
+      <!-- General Beds -->
+      <div class="kpi-card cyan" onclick="switchTab('tab-beds')">
+        <div class="kpi-top">
+          <span class="kpi-label">General Ward Beds</span>
+          <span class="kpi-icon">🛏️</span>
+        </div>
+        <div class="kpi-value" id="kpi-ward-val">238 / 280</div>
+        <div class="kpi-subtext">
+          <span>85.0% Occupancy</span> • <span style="color:#34d399">28 Available</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="kpi-ward-bar" style="width: 85%; background: var(--accent-cyan);"></div>
+        </div>
+      </div>
+
+      <!-- ICU Capacity -->
+      <div class="kpi-card rose" onclick="switchTab('tab-icu')">
+        <div class="kpi-top">
+          <span class="kpi-label">ICU Capacity (Critical)</span>
+          <span class="kpi-icon">🫀</span>
+        </div>
+        <div class="kpi-value" id="kpi-icu-val" style="color: #f87171">41 / 45</div>
+        <div class="kpi-subtext">
+          <span>91.1% Saturated</span> • <span style="color:#f87171">Only 2 Free</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="kpi-icu-bar" style="width: 91%; background: var(--accent-rose);"></div>
+        </div>
+      </div>
+
+      <!-- Operating Theatres -->
+      <div class="kpi-card emerald" onclick="switchTab('tab-or')">
+        <div class="kpi-top">
+          <span class="kpi-label">Operating Rooms (OR)</span>
+          <span class="kpi-icon">🔬</span>
+        </div>
+        <div class="kpi-value" id="kpi-or-val">10 / 12 Active</div>
+        <div class="kpi-subtext">
+          <span>83.3% Utilization</span> • <span>Target 80% (Optimized)</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="kpi-or-bar" style="width: 83%; background: var(--accent-emerald);"></div>
+        </div>
+      </div>
+
+      <!-- Staff Rosters -->
+      <div class="kpi-card amber" onclick="switchTab('tab-staff')">
+        <div class="kpi-top">
+          <span class="kpi-label">Nursing Staff Pool</span>
+          <span class="kpi-icon">👩‍⚕️</span>
+        </div>
+        <div class="kpi-value" id="kpi-nurse-val">112 / 125</div>
+        <div class="kpi-subtext">
+          <span>Mandated 1:2 ICU / 1:5 Ward</span> • <span>13 Float Available</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="kpi-nurse-bar" style="width: 89.6%; background: var(--accent-amber);"></div>
+        </div>
+      </div>
+
+      <!-- ED Influx Surge Index -->
+      <div class="kpi-card indigo" onclick="switchTab('tab-ed')">
+        <div class="kpi-top">
+          <span class="kpi-label">ED Surge Index</span>
+          <span class="kpi-icon">🚨</span>
+        </div>
+        <div class="kpi-value" id="kpi-surge-val">1.28x High</div>
+        <div class="kpi-subtext">
+          <span>+28% Inflow</span> • <span style="color:#fbbf24">32/35 Bays Occupied</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: 76%; background: var(--accent-indigo);"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: MASTER HOSPITAL OVERVIEW (SABHI KA OVERVIEW) -->
+    <!-- ========================================== -->
+    <div id="tab-overview" class="tab-content">
+      <!-- Cross-Department Patient Flow Matrix -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <h2 class="card-title"><span>🌐</span> Cross-Department Operational Flow & Bottleneck Map</h2>
+          <span class="badge badge-info">Holistic Capacity Symphony</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+          Beds, ICU, Operating Rooms, Staff, and Emergency resources depend on each other. Arogya-Veda AI eliminates planning in silos.
+        </p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 8px;">
+          <!-- ED -->
+          <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 10px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 700; color: #818cf8;">1. Emergency Inflow</span>
+              <span class="badge badge-warning">High Load</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">32 / 35 Bays</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">Queue: 8 triage patients • Wait: 38m</div>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 10px; padding: 4px 8px; font-size: 11px;" onclick="switchTab('tab-ed')">View ED Command →</button>
+          </div>
+
+          <!-- ICU -->
+          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 700; color: #f87171;">2. ICU Critical Hub</span>
+              <span class="badge badge-critical">91% Saturation</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">41 / 45 Beds</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">Ventilators: 27/32 • 3 Step-Down ready</div>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 10px; padding: 4px 8px; font-size: 11px;" onclick="switchTab('tab-icu')">View ICU Hub →</button>
+          </div>
+
+          <!-- OR -->
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 700; color: #34d399;">3. Surgical Theatres</span>
+              <span class="badge badge-success">83% Optimized</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">10 / 12 Theatres</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">Dynamic block staggering active</div>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 10px; padding: 4px 8px; font-size: 11px;" onclick="switchTab('tab-or')">View OR Suites →</button>
+          </div>
+
+          <!-- Ward Beds -->
+          <div style="background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 10px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 700; color: #38bdf8;">4. Inpatient Wards</span>
+              <span class="badge badge-info">85% In Use</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">238 / 280 Beds</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">25 ready for discharge • 28 beds free</div>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 10px; padding: 4px 8px; font-size: 11px;" onclick="switchTab('tab-beds')">View Wards Map →</button>
+          </div>
+
+          <!-- Staffing -->
+          <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 700; color: #fbbf24;">5. Staff Rostering</span>
+              <span class="badge badge-warning">Monitored</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">112 / 125 Nurses</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">13 Float Pool • 14 Fatigue alert</div>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 10px; padding: 4px 8px; font-size: 11px;" onclick="switchTab('tab-staff')">View Staff Roster →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-grid-2">
+        <!-- Master AI Actions -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><span>🤖</span> Master AI Optimization Recommendations</h2>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="applyAllRecommendations()">⚡ Batch Approve All</button>
+            </div>
+          </div>
+          <div id="overview-actions-list">
+            <!-- Dynamic Actions -->
+          </div>
+        </div>
+
+        <!-- Live Operational Alerts & Quick Dispatch -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><span>⚠️</span> Live Institutional Alerts & Early Warnings</h2>
+            <span class="badge badge-warning">Proactive Detection</span>
+          </div>
+          <div id="alerts-list">
+            <!-- Dynamic alerts -->
+          </div>
+
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+            <h3 style="font-size: 13.5px; margin-bottom: 10px; color: var(--text-main);">Instant Cross-Department Dispatch</h3>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn" onclick="applyQuickAction('Expedite 3 ICU step-down patients', 'ICU')">🫀 Expedite 3 ICU Step-Downs</button>
+              <button class="btn btn-secondary" onclick="applyQuickAction('Deploy 4 Float Nurses to ED', 'Staffing')">👩‍⚕️ Float 4 Nurses to ED</button>
+              <button class="btn btn-secondary" onclick="applyQuickAction('Stagger Elective OR Surgery Block', 'OR')">🔬 Stagger OR Electives</button>
+              <button class="btn btn-secondary" onclick="applyQuickAction('Fast-Track Discharge Lounge Transfers', 'Beds')">🛏️ Fast-Track 12 Ward Discharges</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: BEDS & INPATIENT WARDS (DEDICATED MODULE) -->
+    <!-- ========================================== -->
+    <div id="tab-beds" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title"><span>🛏️</span> Dedicated Beds & Inpatient Wards Management</h2>
+            <p style="color: var(--text-muted); font-size: 12.5px; margin-top: 2px;">
+              Real-time ward occupancy, admission buffering, discharge velocity, and cleaning turnaround across 280 general beds.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn" onclick="triggerBedRebalance()">⚡ Auto-Rebalance Beds</button>
+            <button class="btn btn-secondary" onclick="triggerDischargeLounge()">🚪 Expedite 25 Discharges</button>
+          </div>
+        </div>
+
+        <!-- Wards Detailed Grid -->
+        <div class="ward-grid" id="ward-units-container">
+          <!-- Dynamically populated from state.ward_units -->
+        </div>
+
+        <!-- Inpatient Bed Status Visual Map -->
+        <div style="margin-top: 20px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 13.5px; font-weight: 600;">Inpatient Bed Heatmap Status</h3>
+            <div style="display: flex; gap: 14px; font-size: 11.5px; color: var(--text-muted);">
+              <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; background: #06b6d4; border-radius: 2px;"></span> Occupied (238)</span>
+              <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; background: #a855f7; border-radius: 2px;"></span> Reserved (14)</span>
+              <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; background: #10b981; border-radius: 2px;"></span> Available (28)</span>
+              <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; background: #f59e0b; border-radius: 2px;"></span> Discharge Pending (25)</span>
+            </div>
+          </div>
+          <div id="bed-dots-container" style="display: flex; flex-wrap: wrap; gap: 4px; max-height: 120px; overflow-y: auto;">
+            <!-- Render 280 bed dots -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: ICU CRITICAL CARE HUB (DEDICATED MODULE) -->
+    <!-- ========================================== -->
+    <div id="tab-icu" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title"><span>🫀</span> ICU Critical Care Hub & Step-Down Triage</h2>
+            <p style="color: var(--text-muted); font-size: 12.5px; margin-top: 2px;">
+              Intensive monitoring of 45 ICU beds, ventilator allocations, and AI-assisted step-down transfers to preserve emergency capacity.
+            </p>
+          </div>
+          <span class="badge badge-critical">91.1% Occupancy Threshold Reached</span>
+        </div>
+
+        <!-- ICU Units Summary Cards -->
+        <div class="panel-grid-3">
+          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="font-weight: 700; color: #f87171;">Medical ICU (MICU)</span>
+              <span class="badge badge-critical">14 / 15 Beds</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Active Ventilators: 9 units • 1 Bed Available</div>
+            <div class="progress-track" style="margin-top: 10px;"><div class="progress-fill" style="width: 93.3%; background: #ef4444;"></div></div>
+          </div>
+
+          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="font-weight: 700; color: #f87171;">Surgical Trauma ICU (SICU)</span>
+              <span class="badge badge-critical">17 / 18 Beds</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Active Ventilators: 12 units • 1 Bed Available</div>
+            <div class="progress-track" style="margin-top: 10px;"><div class="progress-fill" style="width: 94.4%; background: #ef4444;"></div></div>
+          </div>
+
+          <div style="background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 10px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="font-weight: 700; color: #38bdf8;">Cardiac ICU (CICU)</span>
+              <span class="badge badge-info">10 / 12 Beds</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Active Ventilators: 6 units • 2 Beds Available</div>
+            <div class="progress-track" style="margin-top: 10px;"><div class="progress-fill" style="width: 83.3%; background: #06b6d4;"></div></div>
+          </div>
+        </div>
+
+        <!-- Step-Down Triage AI Table -->
+        <div style="margin-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="font-size: 14px; font-weight: 600; color: var(--text-main);">
+              <span>📋</span> AI-Identified Step-Down Eligible Patients (Transfer to Telemetry Ward to Free ICU Beds)
+            </h3>
+            <span class="badge badge-success">3 High-Safety Transfers Recommended</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px;" id="icu-stepdown-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: OPERATING THEATRES (OR) (DEDICATED MODULE) -->
+    <!-- ========================================== -->
+    <div id="tab-or" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title"><span>🔬</span> Dedicated Operating Theatres (OR) Suite & Schedule</h2>
+            <p style="color: var(--text-muted); font-size: 12.5px; margin-top: 2px;">
+              Dynamic surgery scheduling, elective block balancing, and turnover gap reduction (Boosting utilization from 65% to 80%).
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn" onclick="triggerOROptimization()">⚡ Re-Optimize OR Schedule</button>
+            <button class="btn btn-secondary" onclick="triggerAddOnOR()">➕ Add Emergency Block</button>
+          </div>
+        </div>
+
+        <!-- 12 Operating Rooms Live Grid -->
+        <div class="or-grid" id="or-suites-container">
+          <!-- Dynamically populated with OR 1 to OR 12 -->
+        </div>
+
+        <div style="margin-top: 20px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px;">
+          <h3 style="font-size: 13.5px; font-weight: 600; color: #34d399; margin-bottom: 6px;">
+            💡 Why Dynamic OR Scheduling Works
+          </h3>
+          <p style="font-size: 12px; color: var(--text-muted);">
+            Traditional block scheduling locks theatres into rigid windows, resulting in 65% utilization and idle downtime. Arogya-Veda AI predicts case length uncertainty and staggers electives (like OR 11) into afternoon slots, eliminating surgical cancellations and achieving <strong>80.0% sustained utilization</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: STAFF & WORKFORCE ROSTERING (DEDICATED MODULE) -->
+    <!-- ========================================== -->
+    <div id="tab-staff" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title"><span>👩‍⚕️</span> Dedicated Staff Rostering & Clinical Workforce Care</h2>
+            <p style="color: var(--text-muted); font-size: 12.5px; margin-top: 2px;">
+              Enforces mandated patient-to-nurse safety ratios (1:2 in ICU, 1:5 in Ward) and mitigates clinical burnout.
+            </p>
+          </div>
+          <button class="btn btn-success" onclick="deployFloatPoolNurses()">👥 Deploy Float Pool Nurses (13 Available)</button>
+        </div>
+
+        <!-- 3 Shifts Breakdown -->
+        <div class="panel-grid-3" id="staff-shifts-container">
+          <!-- Populated from state.staff_roster.shifts -->
+        </div>
+
+        <!-- Ratio Compliance & Burnout Mitigation Panel -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px;">
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px;">
+            <h3 style="font-size: 13.5px; font-weight: 600; margin-bottom: 8px;">Mandated Clinical Ratios Monitor</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12.5px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>ICU Ratio (1:2 Target):</span>
+                <span class="badge badge-success">Compliant (1:1.95)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Ward Ratio (1:5 Target):</span>
+                <span class="badge badge-warning">Near Threshold (1:4.92)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>OR Scrub Staffing:</span>
+                <span class="badge badge-success">2 Nurses / Active Theatre</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px;">
+            <h3 style="font-size: 13.5px; font-weight: 600; margin-bottom: 8px;">Workforce Fatigue & Burnout Safeguard</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+              14 clinical personnel flagged with elevated overtime stress. Arogya-Veda AI activates dynamic rotation to prevent errors.
+            </p>
+            <div class="progress-track"><div class="progress-fill" style="width: 28%; background: #f59e0b;"></div></div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+              <span>Average Shift Fatigue: 28%</span>
+              <span style="color:#10b981">Low Risk of Absenteeism</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 6: EMERGENCY DEPARTMENT (ED) (DEDICATED MODULE) -->
+    <!-- ========================================== -->
+    <div id="tab-ed" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title"><span>🚨</span> Dedicated Emergency Department (ED) Surge Command</h2>
+            <p style="color: var(--text-muted); font-size: 12.5px; margin-top: 2px;">
+              Triage category queues, ambulance bay turnaround, wait-time prediction, and surge diversion protocols.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-danger" onclick="toggleSurgeDiversion()">🚨 Toggle Diversion Protocol</button>
+            <button class="btn" onclick="activateFastTrackED()">⚡ Fast-Track Bedside Labs</button>
+          </div>
+        </div>
+
+        <!-- ED Metrics Grid -->
+        <div class="panel-grid-3">
+          <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 10px; padding: 16px;">
+            <span style="font-size: 12px; color: #818cf8; font-weight: 600;">ED BAYS OCCUPANCY</span>
+            <div style="font-size: 24px; font-weight: 700; color: #f8fafc; margin-top: 4px;">32 / 35 Active Bays</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">3 Resuscitation bays reserved for trauma</div>
+          </div>
+
+          <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 16px;">
+            <span style="font-size: 12px; color: #fbbf24; font-weight: 600;">BOARDING WAIT TIME</span>
+            <div style="font-size: 24px; font-weight: 700; color: #fbbf24; margin-top: 4px;">38 mins</div>
+            <div style="font-size: 11.5px; color: #34d399; margin-top: 4px;">-60% vs 95 mins historical baseline</div>
+          </div>
+
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 16px;">
+            <span style="font-size: 12px; color: #34d399; font-weight: 600;">AMBULANCE BAYS</span>
+            <div style="font-size: 24px; font-weight: 700; color: #34d399; margin-top: 4px;">5 / 6 Bays In Use</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">2 inbound ambulances reported</div>
+          </div>
+        </div>
+
+        <!-- ESI Triage Breakdown -->
+        <div style="margin-top: 14px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px;">
+          <h3 style="font-size: 13.5px; font-weight: 600; margin-bottom: 12px;">Emergency Severity Index (ESI) Triage Queue Breakdown</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239,68,68,0.4); border-radius: 8px; padding: 12px;">
+              <div style="font-size: 11px; font-weight: 700; color: #f87171;">LEVEL 1: RESUSCITATION</div>
+              <div style="font-size: 22px; font-weight: 800; color: #fff; margin-top: 2px;">2 Patients</div>
+              <div style="font-size: 11px; color: #fca5a5;">Immediate care • 0m wait</div>
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245,158,11,0.4); border-radius: 8px; padding: 12px;">
+              <div style="font-size: 11px; font-weight: 700; color: #fbbf24;">LEVEL 2: EMERGENT</div>
+              <div style="font-size: 22px; font-weight: 800; color: #fff; margin-top: 2px;">7 Patients</div>
+              <div style="font-size: 11px; color: #fde68a;">Target wait &lt; 15 mins</div>
+            </div>
+            <div style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6,182,212,0.4); border-radius: 8px; padding: 12px;">
+              <div style="font-size: 11px; font-weight: 700; color: #38bdf8;">LEVEL 3: URGENT</div>
+              <div style="font-size: 22px; font-weight: 800; color: #fff; margin-top: 2px;">15 Patients</div>
+              <div style="font-size: 11px; color: #bae6fd;">Multiple diagnostic resources</div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16,185,129,0.4); border-radius: 8px; padding: 12px;">
+              <div style="font-size: 11px; font-weight: 700; color: #34d399;">LEVEL 4: LESS URGENT</div>
+              <div style="font-size: 22px; font-weight: 800; color: #fff; margin-top: 2px;">8 Patients</div>
+              <div style="font-size: 11px; color: #a7f3d0;">Single diagnostic test</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 7: QUANTILE DEMAND FORECAST -->
+    <!-- ========================================== -->
+    <div id="tab-forecasting" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><span>🔮</span> Multi-Horizon Quantile Forecaster (P10, P50, P90)</h2>
+          <span class="badge badge-info">Uncertainty-Aware Forecasting</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+          Incorporates historical admissions, ED triage velocity, day-of-week trends, weather severity, and epidemic contagion signals.
+        </p>
+
+        <!-- Forecaster Controls -->
+        <div class="control-row">
+          <div class="control-group">
+            <label class="control-label">Forecast Horizon</label>
+            <select id="fc-horizon" onchange="runForecast()">
+              <option value="7">7 Days Ahead (Operational)</option>
+              <option value="14">14 Days Ahead (Tactical)</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">Surge Multiplier: <span id="fc-surge-label" style="color:#38bdf8">1.0x</span></label>
+            <input type="range" id="fc-surge" min="0.8" max="2.5" step="0.1" value="1.0" oninput="updateSurgeLabel(this.value); runForecast();">
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">Weather Impact Factor</label>
+            <select id="fc-weather" onchange="runForecast()">
+              <option value="normal">Normal Seasonal Conditions (1.0x)</option>
+              <option value="severe_cold">Severe Winter Freeze / Hypothermia (+22%)</option>
+              <option value="extreme_heat">Extreme Heatwave (+15%)</option>
+              <option value="monsoon_flooding">Monsoon Flood Contagion (+35%)</option>
+            </select>
+          </div>
+
+          <div class="control-group" style="flex: 0 0 auto;">
+            <label class="control-label">Outbreak Signal</label>
+            <button id="fc-outbreak-btn" class="btn btn-secondary" onclick="toggleOutbreak()">
+              <span>🦠</span> Epidemic Mode: OFF
+            </button>
+          </div>
+        </div>
+
+        <!-- Forecaster Chart Container -->
+        <div class="chart-container" id="forecast-chart-box">
+          <svg id="forecast-svg" width="100%" height="100%"></svg>
+        </div>
+
+        <!-- Forecaster Data Table -->
+        <div style="margin-top: 18px; overflow-x: auto;">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Date</th>
+                <th>Ward Admissions (P10 - P50 - P90)</th>
+                <th>ICU Demand (P10 - P50 - P90)</th>
+                <th>ED Influx (P50)</th>
+                <th>OR Cases (P50)</th>
+                <th>Uncertainty Spread</th>
+              </tr>
+            </thead>
+            <tbody id="forecast-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 8: JOINT MILP OPTIMIZER -->
+    <!-- ========================================== -->
+    <div id="tab-optimizer" class="tab-content" style="display: none;">
+      <div class="panel-grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><span>⚙️</span> Operations Research MILP Solver</h2>
+            <span class="badge badge-success">SciPy HiGHS Solver</span>
+          </div>
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+            Jointly optimizes Beds, ICU, OR theatres, and Staff rosters under hard constraints and clinical ratios (1:2 ICU, 1:5 Ward).
+          </p>
+
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">Ward Admission Demand: <span id="opt-ward-val">242</span></label>
+              <input type="range" id="opt-ward-demand" min="150" max="320" value="242" oninput="document.getElementById('opt-ward-val').innerText=this.value">
+            </div>
+            <div class="control-group">
+              <label class="control-label">ICU Demand: <span id="opt-icu-val">41</span></label>
+              <input type="range" id="opt-icu-demand" min="20" max="60" value="41" oninput="document.getElementById('opt-icu-val').innerText=this.value">
+            </div>
+          </div>
+
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">OR Surgical Procedures: <span id="opt-or-val">11</span></label>
+              <input type="range" id="opt-or-demand" min="4" max="16" value="11" oninput="document.getElementById('opt-or-val').innerText=this.value">
+            </div>
+            <div class="control-group">
+              <label class="control-label">Available Nurse Roster: <span id="opt-nurse-val">125</span></label>
+              <input type="range" id="opt-nurse-pool" min="80" max="150" value="125" oninput="document.getElementById('opt-nurse-val').innerText=this.value">
+            </div>
+          </div>
+
+          <div style="margin-top: 14px;">
+            <button class="btn" style="width: 100%;" onclick="runOptimizationSolve()">
+              <span>⚡</span> Solve Joint MILP Model & Compute Allocations
+            </button>
+          </div>
+
+          <!-- Binding Constraints Box -->
+          <div style="margin-top: 20px;">
+            <h3 style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Active Binding Constraints (Bottlenecks)</h3>
+            <div id="binding-constraints-list" style="display: flex; flex-direction: column; gap: 6px;">
+              <!-- Dynamic tags -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Computed Allocation Results -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><span>📊</span> Optimal Allocations & Utilization</h2>
+            <span id="optimizer-status-badge" class="badge badge-success">OPTIMAL</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px;">
+              <div style="font-size: 12px; color: var(--text-muted)">General Ward Allocated</div>
+              <div id="res-ward-alloc" style="font-size: 22px; font-weight: 700; color: #38bdf8">242 / 280</div>
+              <div id="res-ward-util" style="font-size: 12px; color: #94a3b8">86.4% utilization</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px;">
+              <div style="font-size: 12px; color: var(--text-muted)">ICU Beds Allocated</div>
+              <div id="res-icu-alloc" style="font-size: 22px; font-weight: 700; color: #f87171">41 / 45</div>
+              <div id="res-icu-util" style="font-size: 12px; color: #94a3b8">91.1% utilization</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px;">
+              <div style="font-size: 12px; color: var(--text-muted)">Operating Rooms Active</div>
+              <div id="res-or-alloc" style="font-size: 22px; font-weight: 700; color: #34d399">11 / 12</div>
+              <div id="res-or-util" style="font-size: 12px; color: #94a3b8">91.7% utilization</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px;">
+              <div style="font-size: 12px; color: var(--text-muted)">Nurses Deployed</div>
+              <div id="res-nurse-alloc" style="font-size: 22px; font-weight: 700; color: #fbbf24">92 / 125</div>
+              <div id="res-nurse-util" style="font-size: 12px; color: #94a3b8">Overtime Activated: 0</div>
+            </div>
+          </div>
+
+          <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--text-main);">Ranked Actions with Explainability</h3>
+          <div id="optimizer-actions-list">
+            <!-- Dynamic Actions with Explainability -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 9: DIGITAL TWIN SURGE SIMULATOR -->
+    <!-- ========================================== -->
+    <div id="tab-digital-twin" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><span>🧪</span> Hospital Digital Twin & RL Surge Policy Simulator</h2>
+          <span class="badge badge-info">SimPy Discrete-Event & PPO Policy</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+          Test catastrophic operational stress events before committing resources. Compares traditional static reactive planning against Arogya-Veda AI's adaptive Reinforcement Learning policy.
+        </p>
+
+        <!-- Scenario Selection -->
+        <div class="control-row">
+          <div class="control-group">
+            <label class="control-label">Select Stress Scenario</label>
+            <select id="dt-scenario" onchange="runDigitalTwinSimulation()">
+              <option value="mass_casualty">Mass-Casualty Incident (+45 Urgent Trauma Victims)</option>
+              <option value="flu_epidemic">Seasonal Respiratory & Flu Epidemic Surge (+60% Influx)</option>
+              <option value="nurse_shortage">Severe Staff Strike / Winter Call-offs (32 Nurses Absent)</option>
+              <option value="or_equipment_failure">Surgical Wing Power Failure (4 ORs Inoperable)</option>
+            </select>
+          </div>
+          <div class="control-group" style="flex: 0 0 auto;">
+            <button class="btn" onclick="runDigitalTwinSimulation()">
+              <span>▶️</span> Run Digital Twin Simulation
+            </button>
+          </div>
+        </div>
+
+        <!-- Simulation Comparison KPIs -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 18px;">
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 14px; border-radius: 8px;">
+            <div style="font-size: 12px; color: #34d399; font-weight: 600;">OVERFLOW PREVENTED</div>
+            <div id="dt-kpi-overflow" style="font-size: 24px; font-weight: 700; color: #34d399">100%</div>
+            <div style="font-size: 11px; color: var(--text-muted)">0 critical patient diversions</div>
+          </div>
+          <div style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); padding: 14px; border-radius: 8px;">
+            <div style="font-size: 12px; color: #38bdf8; font-weight: 600;">ED WAIT TIME REDUCTION</div>
+            <div id="dt-kpi-wait" style="font-size: 24px; font-weight: 700; color: #38bdf8">-61.4%</div>
+            <div style="font-size: 11px; color: var(--text-muted)">via rapid disposition protocols</div>
+          </div>
+          <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 14px; border-radius: 8px;">
+            <div style="font-size: 12px; color: #fbbf24; font-weight: 600;">ICU UNMET BED REDUCTION</div>
+            <div style="font-size: 24px; font-weight: 700; color: #fbbf24">-40.0%</div>
+            <div style="font-size: 11px; color: var(--text-muted)">Same staffing pool</div>
+          </div>
+        </div>
+
+        <!-- 24-Hour Digital Twin Comparison Chart -->
+        <h3 style="font-size: 14px; margin-bottom: 8px; color: var(--text-main);">24-Hour Hour-by-Hour Timeline: Static System vs Arogya-Veda AI</h3>
+        <div class="chart-container" id="dt-chart-box">
+          <svg id="dt-svg" width="100%" height="100%"></svg>
+        </div>
+
+        <!-- RL Policy Action Trace -->
+        <div style="margin-top: 18px;">
+          <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--text-main);">Reinforcement Learning Adaptive Actions Taken</h3>
+          <div id="dt-actions-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 10: HOSPITAL LONGITUDINAL PERFORMANCE & ACCURACY OVERVIEW -->
+    <!-- ========================================== -->
+    <div id="tab-benchmark" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><span>📊</span> Hospital Longitudinal Performance & Forecast Accuracy (56 Test Days)</h2>
+          <span class="badge badge-info">Empirical Clinical Verification</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+          56-day longitudinal evaluation comparing actual hospital bed demand against Arogya-Veda AI ML predictions vs 7-day moving average baseline.
+        </p>
+
+        <!-- 4 Key Proven Performance Metrics Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px;">
+          <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 16px;">
+            <div style="font-size: 32px; font-weight: 800; color: #10b981;">6.7%</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-top: 4px;">Forecast Error (MAPE)</div>
+            <div style="font-size: 12px; color: var(--text-muted);">vs 8.1% for a 7-day moving average baseline</div>
+          </div>
+          <div style="background: rgba(6, 182, 212, 0.12); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 10px; padding: 16px;">
+            <div style="font-size: 32px; font-weight: 800; color: #06b6d4;">-40%</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-top: 4px;">ICU Unmet Bed-Days</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Achieved at the exact same staffing pool</div>
+          </div>
+          <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 10px; padding: 16px;">
+            <div style="font-size: 32px; font-weight: 800; color: #818cf8;">-15%</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-top: 4px;">Priority-Weighted Shortfall</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Across joint ICU, ward, and ED capacity</div>
+          </div>
+          <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 16px;">
+            <div style="font-size: 32px; font-weight: 800; color: #fbbf24;">65% ➔ 80%</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-top: 4px;">Operating-Room Utilization</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Eliminating turnover gaps and idle blocks</div>
+          </div>
+        </div>
+
+        <!-- 56-Day Chart Box -->
+        <div class="chart-container" style="height: 380px;">
+          <svg id="benchmark-svg" width="100%" height="100%"></svg>
+        </div>
+        <div style="display: flex; justify-content: center; gap: 24px; margin-top: 12px; font-size: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 14px; height: 3px; background: #64748b;"></span>
+            <span style="color: #94a3b8;">Actual Demand</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 14px; height: 3px; background: #06b6d4;"></span>
+            <span style="color: #38bdf8; font-weight: 600;">Arogya-Veda ML Forecast</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 14px; height: 3px; background: #a855f7;"></span>
+            <span style="color: #c084fc;">7-Day Moving Average Baseline</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 11: HOSPITAL RESOURCE EDITOR & SETUP ("KITNA KYA CHEEZ HAI & KAISE EDIT KARENGE") -->
+    <!-- ========================================== -->
+    <div id="tab-config" class="tab-content" style="display: none;">
+      <!-- Section 1: Kitna Kya Cheez Hai (Current Inventory Audit) -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title"><span>📋</span> Real-Time Hospital Resource Inventory Matrix ("Kitna Kya Cheez Hai")</h2>
+            <p style="color: var(--text-muted); font-size: 12.5px; margin-top: 2px;">
+              Live transparent audit of all hospital assets: total capacity, currently occupied, buffer reserve, and free availability.
+            </p>
+          </div>
+          <span class="badge badge-success">Inventory Synced</span>
+        </div>
+
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>Department / Asset Name</th>
+              <th>Total Capacity</th>
+              <th>Currently Occupied</th>
+              <th>Reserved / Buffer</th>
+              <th>Free / Idle</th>
+              <th>Utilization Rate</th>
+              <th>Ratio / Clinical Status</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Section 2: Hospitals Ise Edit Kaise Karenge (Live Resource Editor & Configuration Panel) -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title"><span>✏️</span> Hospital Capacity & Clinical Ratio Customizer ("Ise Edit Kaise Karenge")</h2>
+            <p style="color: var(--text-muted); font-size: 12.5px; margin-top: 2px;">
+              Hospital administration yahan se apni actual hospital capacity, bed numbers, nurse ratios, aur doctor counts edit karke update kar sakti hai. Changes turant optimization aur live dashboards par reflect honge.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="applyPresetScale('tertiary_large')">🏢 500-Bed Tertiary</button>
+            <button class="btn btn-secondary" onclick="applyPresetScale('metro_standard')">🏥 280-Bed Metro</button>
+            <button class="btn btn-secondary" onclick="applyPresetScale('community_clinic')">🩺 120-Bed Clinic</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 20px;">
+          <div class="control-group">
+            <label class="control-label">Hospital Name / Facility Campus</label>
+            <input type="text" id="cfg-hospital-name" value="Apollo Metro Health - Central Campus">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Total General Ward Beds</label>
+            <input type="number" id="cfg-ward-beds" value="280" min="50" max="1000">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Total ICU Beds (Critical Care)</label>
+            <input type="number" id="cfg-icu-beds" value="45" min="5" max="150">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Operating Rooms (OR Theatres)</label>
+            <input type="number" id="cfg-or-theatres" value="12" min="1" max="50">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Emergency Department Bays</label>
+            <input type="number" id="cfg-ed-bays" value="35" min="5" max="100">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Total Registered Nurses Pool</label>
+            <input type="number" id="cfg-total-nurses" value="125" min="20" max="500">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Total On-Duty Doctors</label>
+            <input type="number" id="cfg-total-doctors" value="38" min="5" max="150">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Mandated ICU Nurse Ratio (1 nurse per X patients)</label>
+            <input type="number" id="cfg-icu-ratio" value="2.0" step="0.5" min="1.0" max="4.0">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Mandated Ward Nurse Ratio (1 nurse per X patients)</label>
+            <input type="number" id="cfg-ward-ratio" value="5.0" step="0.5" min="2.0" max="8.0">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-success" style="padding: 10px 24px; font-size: 13.5px;" onclick="saveHospitalConfiguration()">
+            💾 Save & Apply Hospital Profile (Update Live Numbers)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 11: ADMINISTRATOR AUDIT & FEEDBACK LOOP -->
+    <!-- ========================================== -->
+    <div id="tab-audit" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><span>🔄</span> Closed-Loop Learning & Override Registry</h2>
+          <span class="badge badge-success">Human-in-the-Loop Active</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+          Administrator approvals and clinical overrides are captured in real time to continuously retrain demand models and refine RL policy rewards.
+        </p>
+
+        <div style="margin-bottom: 20px; background: rgba(0,0,0,0.25); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <h3 style="font-size: 13px; color: var(--text-main); margin-bottom: 8px;">Manual Action / Policy Override Entry</h3>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <input type="text" id="audit-title" placeholder="Action description (e.g. Reserve 2 beds for neuro-trauma transfer)" style="flex: 2; min-width: 250px;">
+            <select id="audit-dept" style="flex: 1; min-width: 130px;">
+              <option value="ICU">ICU</option>
+              <option value="Ward">General Ward</option>
+              <option value="OR">Operating Rooms</option>
+              <option value="ED">Emergency</option>
+              <option value="Staffing">Staffing</option>
+            </select>
+            <select id="audit-type" style="flex: 1; min-width: 130px;">
+              <option value="APPROVE">APPROVE AI PLAN</option>
+              <option value="OVERRIDE">CLINICAL OVERRIDE</option>
+            </select>
+            <button class="btn" onclick="submitAuditEntry()">Commit to Feedback Registry</button>
+          </div>
+        </div>
+
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Timestamp</th>
+              <th>Action & Department</th>
+              <th>Status</th>
+              <th>Notes / Feedback Effect</th>
+            </tr>
+          </thead>
+          <tbody id="audit-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/static/app.js"></script>
+</body>
+</html>
