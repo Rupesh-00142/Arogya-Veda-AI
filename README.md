@@ -3,6 +3,7 @@
 **Problem Statement 5**: AI-Based Hospital Resource Optimization  
 **Team Name**: Astra  
 **Team Leader**: Rupesh Tandan (CSVTU)  
+Demo Deploy link : https://arogya-veda-ai.onrender.com
 
 ---
 
